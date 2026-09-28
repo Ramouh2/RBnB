@@ -196,6 +196,51 @@
   }
 }
 
+/* Range natif du Motion Lab (contrôles de calibration) */
+@utility rbnb-range {
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: linear-gradient(
+      to right,
+      var(--rbnb-accent) var(--rbnb-range-progress, 50%),
+      var(--rbnb-surface-3) var(--rbnb-range-progress, 50%)
+    );
+  }
+  &::-moz-range-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--rbnb-surface-3);
+  }
+  &::-moz-range-progress {
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--rbnb-accent);
+  }
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -6px;
+    border-radius: 9999px;
+    background: var(--rbnb-fg-primary);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  }
+  &::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--rbnb-fg-primary);
+  }
+  &:focus-visible {
+    outline: none;
+  }
+  &:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px var(--rbnb-accent-glow);
+  }
+}
+
 /* Masque « bordure seule » : l'élément ne laisse voir que son padding de 1px */
 @utility mask-border {
   -webkit-mask:

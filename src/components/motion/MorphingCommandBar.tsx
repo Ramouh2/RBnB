@@ -241,7 +241,7 @@ export function MorphingCommandBar({
                   <Search className="size-3.5" aria-hidden="true" />
                   <span className="hidden sm:inline">Rechercher</span>
                   <span className="hidden items-center gap-1 sm:flex">
-                    <Kbd>{isApple ? "⌘" : "Ctrl"}</Kbd>
+                    <Kbd className="w-9">{isApple ? "⌘" : "Ctrl"}</Kbd>
                     <Kbd>K</Kbd>
                   </span>
                 </motion.button>

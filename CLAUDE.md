@@ -853,7 +853,7 @@ Un composant, une page ou une fonctionnalité de RBnB est considéré comme Term
 | Animations Existantes | Framer Motion uniquement, centralisé dans `src/lib/motion/` + `src/hooks/` + `src/components/motion/`. |
 | Gestion d'État | État local React + MotionValues ; Server Actions pour l'auth ; store externe (`useSyncExternalStore`) pour l'override reduced-motion. |
 | API, Backend & Base de Données | Pas de base de données. Server Actions (`src/app/login/actions.ts`, `src/app/dashboard/actions.ts`). |
-| Authentification | Maison, sans dépendance : session **stateless** en cookie `httpOnly` signé HMAC-SHA256 (Web Crypto), vérifiée côté serveur (`src/lib/auth/`). Compte de démonstration configurable par variables d'environnement (voir `.env.example`). Route de connexion : `/login`. |
+| Authentification | Maison, sans dépendance : session **stateless** en cookie `httpOnly` signé HMAC-SHA256 (Web Crypto), vérifiée côté serveur (`src/lib/auth/`). Server Action `signInAction` (`src/app/login/actions.ts`), redirections optimistes dans `src/proxy.ts`, contrôle d'autorisation réel dans `src/app/dashboard/page.tsx`. Compte de démonstration configurable (voir `.env.example`). Route de connexion : `/login`. `RBNB_AUTH_SECRET` obligatoire en production (sinon connexion refusée). |
 | Dette Technique & Doublons | Aucune (projet neuf). |
 
 ### A.2 Stack
@@ -882,3 +882,16 @@ npm run build       # next build
 
 - Les ressorts (`type: "spring"`) n'acceptent que **2 keyframes** : la secousse d'erreur `x: [0, -10, 10, -7, 7, -3, 3, 0]` utilise donc des keyframes à courbe amortie, tandis que les ressorts `RBNB_SPRINGS` pilotent tous les mouvements à deux états.
 - Un ressort entre deux valeurs identiques avec une `velocity` non nulle anime quand même (impulsion physique).
+
+### A.6 Pièges techniques vérifiés (à ne pas réintroduire)
+
+- **Ne jamais rediriger depuis `src/app/login/page.tsx`** quand une session existe : une Server Action qui pose un cookie
+  re-rend la route dans la même réponse, et la redirection couperait la chorégraphie de succès de LiquidLogin.
+  La redirection « déjà connecté » vit dans `src/proxy.ts` (requêtes GET uniquement).
+- **`getSession()` lit les cookies avant toute autre condition** : sinon `/dashboard` peut être pré-rendue statiquement.
+- **`useTransform(() => …)` + StrictMode** : une MotionValue modifiée dans un effet de montage peut ne jamais propager
+  (abonnement recréé, valeur identique). Pour une dimension mesurée, utiliser un état React (`useElementWidth`).
+- **Lint React Compiler (Next 16)** : pas de `setState` synchrone dans un effet, pas de lecture de `ref.current` pendant
+  le rendu, déstructurer immédiatement les objets de hooks contenant une ref (`useMagnetic`).
+- **Formulaire LiquidLogin en `method="post"`** : une soumission avant hydratation ne doit jamais placer le mot de passe dans l'URL.
+

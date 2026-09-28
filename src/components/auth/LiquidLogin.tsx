@@ -214,6 +214,8 @@ export function LiquidLogin({
   return (
     <form
       noValidate
+      // POST : même soumise avant l'hydratation, le mot de passe ne fuit jamais dans l'URL.
+      method="post"
       aria-describedby={messageId}
       aria-busy={busy}
       onSubmit={(event) => {

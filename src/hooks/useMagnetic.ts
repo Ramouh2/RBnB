@@ -65,12 +65,25 @@ export function useMagnetic<T extends HTMLElement>(options: MagneticOptions = {}
       return;
     }
 
+    // Géométrie au repos mise en cache : aucune lecture de layout par mouvement de souris,
+    // sauf après un scroll / redimensionnement, et au plus toutes les 250 ms.
+    let cache: { left: number; top: number; width: number; height: number } | null = null;
+    let measuredAt = 0;
+    const invalidate = () => {
+      cache = null;
+    };
+    const measure = () => {
+      const rect = element.getBoundingClientRect();
+      // Position au repos (sans la translation magnétique en cours) : aucune boucle de rétroaction.
+      cache = { left: rect.left - x.get(), top: rect.top - y.get(), width: rect.width, height: rect.height };
+      measuredAt = performance.now();
+      return cache;
+    };
+
     const handleMove = (event: PointerEvent) => {
       if (event.pointerType === "touch") return;
-      const rect = element.getBoundingClientRect();
-      // Position au repos (sans la translation magnétique en cours) pour éviter toute boucle de rétroaction.
-      const left = rect.left - x.get();
-      const top = rect.top - y.get();
+      const rect = cache && performance.now() - measuredAt < 250 ? cache : measure();
+      const { left, top } = rect;
       const centerX = left + rect.width / 2;
       const centerY = top + rect.height / 2;
 
@@ -105,10 +118,17 @@ export function useMagnetic<T extends HTMLElement>(options: MagneticOptions = {}
       rawGlow.set(0);
     };
 
+    const observer = new ResizeObserver(invalidate);
+    observer.observe(element);
+    window.addEventListener("scroll", invalidate, { passive: true, capture: true });
+    window.addEventListener("resize", invalidate);
     window.addEventListener("pointermove", handleMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", reset);
     window.addEventListener("blur", reset);
     return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", invalidate, { capture: true });
+      window.removeEventListener("resize", invalidate);
       window.removeEventListener("pointermove", handleMove);
       document.documentElement.removeEventListener("pointerleave", reset);
       window.removeEventListener("blur", reset);
